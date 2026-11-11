@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Movimientos · Almacén</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+</head>
+<body class="bg-light">
+<div th:replace="~{fragments/nav :: barra}"></div>
+<main class="container py-4 py-lg-5">
+    <div th:replace="~{fragments/alertas :: mensajes}"></div>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div><p class="text-primary fw-semibold mb-1">KARDEX</p><h1 class="h2 mb-0">Movimientos de inventario</h1></div>
+        <a th:href="@{/movimientos/nuevo}" class="btn btn-primary">Registrar movimiento</a>
+    </div>
+    <div class="card border-0 shadow-sm"><div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light"><tr><th>N.º</th><th>Fecha</th><th>Tipo</th><th>Usuario</th><th>Proveedor</th><th>Observación</th></tr></thead>
+            <tbody>
+            <tr th:each="movimiento : ${movimientos}">
+                <td class="text-secondary" th:text="${movimiento.id}">1</td>
+                <td th:text="${#temporals.format(movimiento.fecha, 'dd/MM/yyyy HH:mm')}">08/11/2026</td>
+                <td><span class="badge" th:classappend="${movimiento.tipo.name() == 'ENTRADA'} ? ' text-bg-success' : ' text-bg-warning'"
+                          th:text="${movimiento.tipo}">ENTRADA</span></td>
+                <td th:text="${movimiento.usuario.nombre}">Usuario</td>
+                <td th:text="${movimiento.proveedor != null ? movimiento.proveedor.razonSocial : '—'}">—</td>
+                <td th:text="${movimiento.observacion ?: '—'}">—</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(movimientos)}"><td colspan="6" class="text-center text-secondary py-5">Aún no hay movimientos.</td></tr>
+            </tbody>
+        </table>
+    </div></div>
+</main>
+</body>
+</html>

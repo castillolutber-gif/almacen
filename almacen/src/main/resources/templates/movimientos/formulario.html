@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nuevo movimiento · Almacén</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+</head>
+<body class="bg-light">
+<div th:replace="~{fragments/nav :: barra}"></div>
+<main class="container py-4 py-lg-5">
+    <div class="mb-4"><a th:href="@{/movimientos}" class="text-decoration-none">← Movimientos</a>
+        <h1 class="h2 mt-3">Registrar movimiento</h1></div>
+    <div class="card border-0 shadow-sm"><div class="card-body p-4">
+        <form th:action="@{/movimientos/guardar}" th:object="${form}" method="post">
+            <div class="alert alert-danger" th:if="${#fields.hasErrors('*')}">
+                <ul class="mb-0"><li th:each="error : ${#fields.allErrors()}" th:text="${error}">Revisa el formulario.</li></ul>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6"><label for="tipo" class="form-label">Tipo</label>
+                    <select id="tipo" class="form-select" th:field="*{tipo}" required>
+                        <option value="">Selecciona entrada o salida</option>
+                        <option th:each="tipo : ${tiposMovimiento}" th:value="${tipo}" th:text="${tipo}"></option>
+                    </select></div>
+                <div class="col-md-6" id="contenedorProveedor"><label for="proveedorId" class="form-label">Proveedor de la entrada</label>
+                    <select id="proveedorId" class="form-select" th:field="*{proveedorId}">
+                        <option value="">Selecciona un proveedor</option>
+                        <option th:each="proveedor : ${proveedores}" th:value="${proveedor.id}" th:text="${proveedor.razonSocial}"></option>
+                    </select></div>
+                <div class="col-12"><label for="observacion" class="form-label">Observación (opcional)</label>
+                    <input id="observacion" class="form-control" th:field="*{observacion}" maxlength="255"></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h2 class="h5 mb-0">Productos y cantidades</h2>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="agregarDetalle">Agregar producto</button>
+            </div>
+            <div id="listaDetalles">
+                <div class="detalle-fila row g-2 align-items-end border rounded-3 p-3 mb-3"
+                     th:each="detalle, iter : ${form.detalles}">
+                    <div class="col-lg-5"><label class="form-label">Producto</label>
+                        <select class="form-select producto-select" th:field="*{detalles[__${iter.index}__].productoId}" required>
+                            <option value="">Selecciona un producto</option>
+                            <option th:each="producto : ${productos}" th:value="${producto.id}"
+                                    th:attr="data-costo=${producto.precioCompra}"
+                                    th:text="${producto.codigo + ' · ' + producto.nombre + ' (stock: ' + producto.stock + ')'}"></option>
+                        </select></div>
+                    <div class="col-lg-2"><label class="form-label">Cantidad</label>
+                        <input class="form-control cantidad-input" type="number" min="1" th:field="*{detalles[__${iter.index}__].cantidad}" required></div>
+                    <div class="col-lg-3"><label class="form-label">Costo unitario (S/)</label>
+                        <input class="form-control costo-input" type="number" min="0" step="0.01" th:field="*{detalles[__${iter.index}__].costoUnitario}" required></div>
+                    <div class="col-lg-2"><button class="btn btn-outline-danger w-100 quitar-detalle" type="button">Quitar</button></div>
+                </div>
+            </div>
+            <div class="alert alert-info">Una salida que supere el stock disponible será rechazada. El servidor actualiza el stock al guardar.</div>
+            <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Guardar movimiento</button>
+                <a class="btn btn-outline-secondary" th:href="@{/movimientos}">Cancelar</a></div>
+        </form>
+    </div></div>
+</main>
+<script>
+    const listaDetalles = document.getElementById('listaDetalles');
+    document.getElementById('agregarDetalle').addEventListener('click', () => {
+        const filas = listaDetalles.querySelectorAll('.detalle-fila');
+        const nueva = filas[filas.length - 1].cloneNode(true);
+        const indice = filas.length;
+        nueva.querySelectorAll('select, input').forEach((campo) => {
+            campo.name = campo.name.replace(/detalles\[\d+\]/, `detalles[${indice}]`);
+            campo.id = campo.id.replace(/detalles\d+/, `detalles${indice}`);
+            campo.value = '';
+        });
+        listaDetalles.appendChild(nueva);
+    });
+    listaDetalles.addEventListener('click', (evento) => {
+        if (!evento.target.classList.contains('quitar-detalle')) return;
+        const filas = listaDetalles.querySelectorAll('.detalle-fila');
+        if (filas.length > 1) evento.target.closest('.detalle-fila').remove();
+        else filas[0].querySelectorAll('select, input').forEach((campo) => campo.value = '');
+    });
+    listaDetalles.addEventListener('change', (evento) => {
+        if (!evento.target.classList.contains('producto-select')) return;
+        const costo = evento.target.selectedOptions[0]?.dataset.costo;
+        const campoCosto = evento.target.closest('.detalle-fila').querySelector('.costo-input');
+        if (!campoCosto.value && costo) campoCosto.value = costo;
+    });
+    const tipo = document.getElementById('tipo');
+    const proveedor = document.getElementById('contenedorProveedor');
+    function actualizarProveedor() {
+        const esEntrada = tipo.value === 'ENTRADA';
+        proveedor.hidden = !esEntrada;
+        document.getElementById('proveedorId').required = esEntrada;
+    }
+    tipo.addEventListener('change', actualizarProveedor);
+    actualizarProveedor();
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+<div th:fragment="mensajes">
+    <div th:if="${exito}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${exito}">Listo.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}">Ocurrió un error.</div>
+</div>

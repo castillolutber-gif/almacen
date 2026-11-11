@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Categorías · Almacén</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+</head>
+<body class="bg-light">
+<div th:replace="~{fragments/nav :: barra}"></div>
+<main class="container py-4 py-lg-5">
+    <div th:replace="~{fragments/alertas :: mensajes}"></div>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <p class="text-primary fw-semibold mb-1">CATÁLOGOS</p>
+            <h1 class="h2 mb-0">Categorías</h1>
+        </div>
+        <a th:if="${esAdmin}" th:href="@{/categorias/nuevo}" class="btn btn-primary">Nueva categoría</a>
+    </div>
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light"><tr><th>Nombre</th><th>Descripción</th><th>Estado</th><th th:if="${esAdmin}" class="text-end">Acciones</th></tr></thead>
+                <tbody>
+                <tr th:each="categoria : ${categorias}">
+                    <td class="fw-semibold" th:text="${categoria.nombre}">Abarrotes</td>
+                    <td th:text="${categoria.descripcion ?: '—'}">Descripción</td>
+                    <td><span class="badge" th:classappend="${categoria.estado} ? ' text-bg-success' : ' text-bg-secondary'"
+                              th:text="${categoria.estado} ? 'Activa' : 'Inactiva'">Activa</span></td>
+                    <td th:if="${esAdmin}" class="text-end">
+                        <a class="btn btn-sm btn-outline-primary" th:href="@{/categorias/{id}/editar(id=${categoria.id})}">Editar</a>
+                        <form class="d-inline" th:action="@{/categorias/{id}/estado(id=${categoria.id})}" method="post">
+                            <button class="btn btn-sm btn-outline-secondary" type="submit"
+                                    th:text="${categoria.estado} ? 'Desactivar' : 'Activar'">Desactivar</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(categorias)}"><td colspan="4" class="text-center text-secondary py-5">Aún no hay categorías.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+</body>
+</html>
